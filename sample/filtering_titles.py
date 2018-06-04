@@ -16,5 +16,5 @@ try:
     print(result_word)
 
 except Exception as e:
-    print("Exceptino when calling filtering_titles %s\n" % e)
+    print("Exception when calling filtering_titles %s\n" % e)
 

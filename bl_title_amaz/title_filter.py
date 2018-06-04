@@ -27,6 +27,13 @@ class Title_filter(DataBase):
             for amz_attr in res['attr_ids']:
                 amz_attr_list.append(amz_attr)
 
+        #reset_count_zero
+        for amz_attr_id in amz_attr_list:
+            res2 = self.amz_attrs_api.get_attr_by_attr_id(amz_attr_id)
+            sub_attrs = res2['sub_attr_ids']
+            for sub_attr_id in sub_attrs:
+                self.amz_title_dic.reset_count_to_zero_by_sub_attr_id(sub_attr_id)
+
         for amz_attr_id in amz_attr_list:
             res1 = self.amz_attrs_api.get_title_dic_by_attr_id(amz_attr_id)
             filter_list.extend(res1)
@@ -47,7 +54,6 @@ class Title_filter(DataBase):
         offset = 0
         limit = 100
 
-
         # get titles
         for node_id in node_ids:
             try:
@@ -61,6 +67,8 @@ class Title_filter(DataBase):
             except Exception as e:
                 print(e)
 
+        count_dic_list = []
+
         # filtering by title dic
         for title_info in titles:
             title = title_info['title']
@@ -72,10 +80,22 @@ class Title_filter(DataBase):
             title = title.replace(",", " ")
 
             for filter in filter_list: # 길이 순서대로
+                count = 0
+                len_title = len(title)
                 title = re.sub('\\b'+filter+' '+'\\b',"",title)
+                len_filter = len(filter)+1
+                len_filtered_title = len(title)
+                if len_title != len_filtered_title:
+                    count_dic = {}
+                    sum_count = count + int((len_title - len_filtered_title)/len_filter)
+                    count_dic['word'] = filter
+                    count_dic['count'] = sum_count
+                    count_dic_list.append(count_dic)
 
             title_info['filtered_title'] = title
 
+        for tmp in count_dic_list:
+            self.amz_title_dic.add_count_by_sub_attr_dic_word(tmp['word'], tmp['count'])
 
         # data clouding
         for title in titles:
@@ -94,9 +114,10 @@ class Title_filter(DataBase):
         self.amz_attrs_api.add_attr(attr_id, attr_kr_name, attr_us_name)
         self.us_btgs_api.update_attr_id_by_node_id(node_id, attr_id)
 
-        # add sub_attr in amz_sub_attrs DB
-        self.amz_sub_attrs_api.add_sub_attr(sub_attr_id, sub_attr_kr_name, sub_attr_us_name)
-        self.amz_attrs_api.update_sub_attr_ids(attr_id, sub_attr_id)
+        if sub_attr_id != None:
+            # add sub_attr in amz_sub_attrs DB
+            self.amz_sub_attrs_api.add_sub_attr(sub_attr_id, sub_attr_kr_name, sub_attr_us_name)
+            self.amz_attrs_api.update_sub_attr_ids(attr_id, sub_attr_id)
 
 
     def add_sub_attr_word_in_amz_title_dic(self, sub_attr_id, sub_attr_word):
