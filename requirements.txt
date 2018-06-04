@@ -1,0 +1,2 @@
+bl-product-amaz==0.0.10
+pymongo==3.6.1
