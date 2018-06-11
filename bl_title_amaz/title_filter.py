@@ -99,7 +99,7 @@ class Title_filter(DataBase):
 
         # data clouding
         for title in titles:
-            tmp = title['title'].split(" ")
+            tmp = title['filtered_title'].split(" ")
             filtered_titles.extend(tmp)
 
         result_words = Counter(filtered_titles)
